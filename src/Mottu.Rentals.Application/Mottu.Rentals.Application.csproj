@@ -2,7 +2,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Mottu.Rentals.Domain\Mottu.Rentals.Domain.csproj" />
-    <ProjectReference Include="..\Mottu.Rentals.Infrastructure\Mottu.Rentals.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Mottu.Rentals.Domain\Mottu.Rentals.Domain.csproj" />
+    <ProjectReference Include="..\Mottu.Rentals.Application\Mottu.Rentals.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>
