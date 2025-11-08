@@ -1,0 +1,85 @@
+# ======================================
+# .NET build artifacts
+# ======================================
+bin/
+obj/
+out/
+publish/
+TestResults/
+*.user
+*.rsuser
+*.suo
+*.cache
+*.log
+*.vspscc
+*.vscode/
+
+# ======================================
+# Rider / Visual Studio / JetBrains
+# ======================================
+.idea/
+*.sln.iml
+*.DotSettings.user
+_ReSharper.Caches/
+_ReSharper*/
+*.resharper
+*.sln.DotSettings
+
+# ======================================
+# Docker / Containers
+# ======================================
+*.pid
+*.seed
+*.pid.lock
+docker-compose.override.yml
+.env
+.env.local
+*.db
+*.sqlite
+*.tar
+*.bak
+
+# ======================================
+# OS / Editor files
+# ======================================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+*.swp
+*.tmp
+*.orig
+*.bak
+*.rej
+*.~*
+*.tmp
+*.log
+
+# ======================================
+# Tooling / Build
+# ======================================
+node_modules/
+coverage/
+dist/
+.nuget/
+packages/
+NCrunch_*
+.vs/
+.vscode/
+.idea/
+
+# ======================================
+# Publish folders
+# ======================================
+/app/
+artifacts/
+local.settings.json
+secrets.json
+
+# ======================================
+# JetBrains Rider specific
+# ======================================
+.idea/
+*.dotCover
+*.sln.iml
+*.DotSettings.user
+/_ReSharper.Caches/
