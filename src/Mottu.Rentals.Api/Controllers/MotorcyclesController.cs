@@ -33,4 +33,12 @@ public class MotorcyclesController : ControllerBase
         var res = new MotorcycleResponse(motorcycle.Id, motorcycle.Identifier, motorcycle.Year, motorcycle.Model, motorcycle.Plate);
         return Created($"/motorcycles/{motorcycle.Id}", res);
     }
+
+    [HttpGet]
+    public async Task<IActionResult> Search([FromQuery] string? plate, [FromServices] IMotorcycleRepository repository)
+    {
+        var motorcycles = await repository.SearchAsync(plate);
+        var res = motorcycles.Select(m => new MotorcycleResponse(m.Id, m.Identifier, m.Year, m.Model, m.Plate));
+        return Ok(res);
+    }
 }

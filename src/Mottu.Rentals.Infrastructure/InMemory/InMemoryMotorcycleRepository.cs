@@ -44,4 +44,16 @@ public class InMemoryMotorcycleRepository : IMotorcycleRepository
     {
         return Task.FromResult(!string.IsNullOrWhiteSpace(plate) && _plates.ContainsKey(NormalizePlate(plate)));
     }
+
+    public Task<IEnumerable<Motorcycle>> SearchAsync(string? plate)
+    {
+        IEnumerable<Motorcycle> motorcycles = _store.Values;
+        
+        if (string.IsNullOrWhiteSpace(plate))
+            return Task.FromResult(motorcycles);
+        
+        var normalizedPlate = NormalizePlate(plate);
+        motorcycles = motorcycles.Where(m => string.Equals(m.Plate, normalizedPlate, StringComparison.OrdinalIgnoreCase));
+        return Task.FromResult(motorcycles);
+    }
 }
