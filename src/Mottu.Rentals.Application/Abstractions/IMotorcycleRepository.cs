@@ -5,8 +5,8 @@ namespace Mottu.Rentals.Application.Abstractions;
 public interface IMotorcycleRepository
 {
     Task<Motorcycle> AddAsync(Motorcycle motorcycle);
-    Task<bool> PlateExistsAsync(string plate);
-    Task<IEnumerable<Motorcycle>> SearchAsync(string? plate);
-    Task<bool> UpdatePlateAsync(string currentPlate, string newPlate);
-    Task<bool> DeleteByPlateAsync(string plate);
+    Task<IEnumerable<Motorcycle>> SearchAsync(string? id);
+    Task<IEnumerable<Motorcycle>> SearchByPlateAsync(string? plate);
+    Task<bool> UpdatePlateAsync(string id, string newPlate);
+    Task<bool> DeleteAsync(string id);
 }

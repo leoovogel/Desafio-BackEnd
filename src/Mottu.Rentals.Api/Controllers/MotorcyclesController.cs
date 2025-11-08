@@ -6,76 +6,80 @@ using Mottu.Rentals.Domain.Entities;
 namespace Mottu.Rentals.Api.Controllers;
 
 [ApiController]
-[Route("motorcycles")]
+[Route("motos")]
 public class MotorcyclesController(IMotorcycleRepository motorcycleRepository) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateMotorcycleRequest req)
     {
-        if (string.IsNullOrWhiteSpace(req.Identifier) ||
-            string.IsNullOrWhiteSpace(req.Model) ||
-            string.IsNullOrWhiteSpace(req.Plate) ||
-            req.Year <= 0)
-            return BadRequest(new { error = "Invalid data" });
-
-        if (await motorcycleRepository.PlateExistsAsync(req.Plate))
-            return Conflict(new { error = "Plate already exists" });
+        if (string.IsNullOrWhiteSpace(req.Identificador) ||
+            string.IsNullOrWhiteSpace(req.Modelo) ||
+            string.IsNullOrWhiteSpace(req.Placa) ||
+            req.Ano <= 0)
+            return BadRequest(new { mensagem = "Dados inválidos" });
 
         var motorcycle = new Motorcycle
         {
-            Identifier = req.Identifier.Trim(),
-            Year = req.Year,
-            Model = req.Model.Trim(),
-            Plate = req.Plate.Trim().ToUpperInvariant()
+            Identifier = req.Identificador,
+            Year = req.Ano,
+            Model = req.Modelo,
+            Plate = req.Placa
         };
 
-        motorcycle = await motorcycleRepository.AddAsync(motorcycle);
-        var res = new MotorcycleResponse(motorcycle.Id, motorcycle.Identifier, motorcycle.Year, motorcycle.Model, motorcycle.Plate);
-        return Created($"/motorcycles/{motorcycle.Id}", res);
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> Search([FromQuery] string? plate)
-    {
-        var motorcycles = await motorcycleRepository.SearchAsync(plate);
-        var res = motorcycles.Select(m => new MotorcycleResponse(m.Id, m.Identifier, m.Year, m.Model, m.Plate));
-        return Ok(res);
-    }
-
-    [HttpPatch("plate")]
-    public async Task<IActionResult> UpdatePlate([FromBody] UpdatePlateByPlateRequest req)
-    {
-        if (string.IsNullOrWhiteSpace(req.CurrentPlate) || string.IsNullOrWhiteSpace(req.NewPlate))
-            return BadRequest(new { error = "Invalid data" });
-        
-        if (!await motorcycleRepository.PlateExistsAsync(req.CurrentPlate))
-            return NotFound(new { error = "Motorcycle with current plate not found" });
-
-        if (string.Equals(req.CurrentPlate.Trim(), req.NewPlate.Trim(), StringComparison.OrdinalIgnoreCase))
-            return BadRequest(new { error = "Current plate and new plate cannot be the same" });
-        
-        if (await motorcycleRepository.PlateExistsAsync(req.NewPlate))
-            return Conflict(new { error = "New plate already exists" });
-        
-        var updated = await motorcycleRepository.UpdatePlateAsync(req.CurrentPlate, req.NewPlate);
-        
-        if (!updated)
-            return NotFound(new { error = "Default error" });
-
-        return NoContent();
+        await motorcycleRepository.AddAsync(motorcycle);
+        return Created("", null);
     }
     
-    [HttpDelete("{plate}")]
-    public async Task<IActionResult> DeleteByPlate(string plate)
+    [HttpGet]
+    public async Task<IActionResult> SearchByPlate([FromQuery] string? placa)
     {
-        if (string.IsNullOrWhiteSpace(plate))
-            return BadRequest(new { error = "Plate is required." });
+        var motorcycles = await motorcycleRepository.SearchByPlateAsync(placa);
+        
+        return Ok(motorcycles);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> Search(string? id)
+    {
+        // TODO: Implement request mal formada 400
+        if (id != null && string.IsNullOrWhiteSpace(id))
+            return BadRequest(new { mensagem = "Request mal formada" });
+        
+        var motorcycles = await motorcycleRepository.SearchAsync(id);
+        
+        // TODO: Implement not found 404
+        if (id != null && !motorcycles.Any())
+            return NotFound(new { mensagem = "Moto não encontrada" });
+        
+        return Ok(motorcycles);
+    }
+
+    [HttpPut("{id}/placa")]
+    public async Task<IActionResult> UpdatePlate([FromBody] UpdatePlateByPlateRequest req, string id)
+    {
+        // TODO: Implement dados inválidos 400
+        if (string.IsNullOrWhiteSpace(req.Placa) || string.IsNullOrWhiteSpace(id))
+            return BadRequest(new { mensagem = "Dados inválidos" });
+        
+        var updated = await motorcycleRepository.UpdatePlateAsync(id, req.Placa);
+        
+        if (!updated)
+            return BadRequest(new { mensagem = "Dados inválidos" });
+
+        return Ok(new { mensagem = "Placa atualizada com sucesso" });
+    }
+    
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteByPlate(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+            return BadRequest(new { mensagem = "Dados inválidos" });
 
         // TODO: Verify if motorcycle has rentals before deleting
         if ("hasRentals" == "false")
-            return Conflict(new { error = "Motorcycle cannot be deleted because it has rentals" });
+            return BadRequest(new { mensagem = "Dados inválidos" });
 
-        var deleted = await motorcycleRepository.DeleteByPlateAsync(plate);
-        return deleted ? NoContent() : NotFound();
+        var deleted = await motorcycleRepository.DeleteAsync(id);
+        return deleted ? Ok() : BadRequest(new { mensagem = "Dados inválidos" });
     }
 }

@@ -6,8 +6,8 @@ namespace Mottu.Rentals.Infrastructure.InMemory;
 
 public class InMemoryMotorcycleRepository : IMotorcycleRepository
 {
-    private readonly ConcurrentDictionary<Guid, Motorcycle> _store = new();
-    private readonly ConcurrentDictionary<string, Guid> _plates = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, Motorcycle> _store = new();
+    private readonly ConcurrentDictionary<string, string> _plates = new();
 
     private static string NormalizePlate(string plate) => plate.Trim().ToUpperInvariant();
 
@@ -22,21 +22,19 @@ public class InMemoryMotorcycleRepository : IMotorcycleRepository
             throw new InvalidOperationException("invalid motorcycle data");
 
         var plate = NormalizePlate(motorcycle.Plate);
-        var id = motorcycle.Id == Guid.Empty ? Guid.NewGuid() : motorcycle.Id;
 
         motorcycle = new Motorcycle
         {
-            Id = id,
             Identifier = motorcycle.Identifier.Trim(),
             Year = motorcycle.Year,
             Model = motorcycle.Model.Trim(),
-            Plate = plate
+            Plate = plate.Trim()
         };
 
-        if (!_plates.TryAdd(plate, id))
+        if (!_plates.TryAdd(plate, motorcycle.Identifier))
             throw new InvalidOperationException("plate already exists");
 
-        _store[id] = motorcycle;
+        _store[motorcycle.Identifier] = motorcycle;
         return Task.FromResult(motorcycle);
     }
 
@@ -45,7 +43,18 @@ public class InMemoryMotorcycleRepository : IMotorcycleRepository
         return Task.FromResult(!string.IsNullOrWhiteSpace(plate) && _plates.ContainsKey(NormalizePlate(plate)));
     }
 
-    public Task<IEnumerable<Motorcycle>> SearchAsync(string? plate)
+    public Task<IEnumerable<Motorcycle>> SearchAsync(string? id)
+    {
+        IEnumerable<Motorcycle> motorcycles = _store.Values;
+        
+        if (string.IsNullOrWhiteSpace(id))
+            return Task.FromResult(motorcycles);
+        
+        motorcycles = motorcycles.Where(m => string.Equals(m.Identifier, id));
+        return Task.FromResult(motorcycles);
+    }
+    
+    public Task<IEnumerable<Motorcycle>> SearchByPlateAsync(string? plate)
     {
         IEnumerable<Motorcycle> motorcycles = _store.Values;
         
@@ -53,31 +62,27 @@ public class InMemoryMotorcycleRepository : IMotorcycleRepository
             return Task.FromResult(motorcycles);
         
         var normalizedPlate = NormalizePlate(plate);
-        motorcycles = motorcycles.Where(m => string.Equals(m.Plate, normalizedPlate, StringComparison.OrdinalIgnoreCase));
+        motorcycles = motorcycles.Where(m => string.Equals(m.Plate, normalizedPlate));
         return Task.FromResult(motorcycles);
     }
 
-    public Task<bool> UpdatePlateAsync(string currentPlate, string newPlate)
+    public Task<bool> UpdatePlateAsync(string id, string newPlate)
     {
-        if (string.IsNullOrWhiteSpace(currentPlate) || string.IsNullOrWhiteSpace(newPlate))
+        if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(newPlate))
             return Task.FromResult(false);
     
-        var normalizedCurrent = NormalizePlate(currentPlate);
         var normalizedNew = NormalizePlate(newPlate);
     
-        if (string.Equals(normalizedCurrent, normalizedNew, StringComparison.OrdinalIgnoreCase))
-            return Task.FromResult(true);
-    
-        if (!_plates.TryGetValue(normalizedCurrent, out var id) || !_store.TryGetValue(id, out var current) || !_plates.TryAdd(normalizedNew, id))
+        if (!_store.TryGetValue(id, out var motorcycle) || !_plates.TryAdd(normalizedNew, id))
             return Task.FromResult(false);
-        
-        _plates.TryRemove(normalizedCurrent, out _);
+
+        _plates.TryRemove(motorcycle.Plate, out _);
+
         var updated = new Motorcycle
         {
-            Id = current.Id,
-            Identifier = current.Identifier,
-            Year = current.Year,
-            Model = current.Model,
+            Identifier = motorcycle.Identifier,
+            Year = motorcycle.Year,
+            Model = motorcycle.Model,
             Plate = normalizedNew
         };
     
@@ -85,18 +90,15 @@ public class InMemoryMotorcycleRepository : IMotorcycleRepository
         return Task.FromResult(true);
     }
 
-    public Task<bool> DeleteByPlateAsync(string plate)
+    public Task<bool> DeleteAsync(string id)
     {
-        if (string.IsNullOrWhiteSpace(plate))
+        if (string.IsNullOrWhiteSpace(id))
             return Task.FromResult(false);
 
-        var normalized = NormalizePlate(plate);
-
-        if (!_plates.TryGetValue(normalized, out var id))
+        if (!_store.TryRemove(id, out var motorcycle))
             return Task.FromResult(false);
 
-        _plates.TryRemove(normalized, out _);
-        _store.TryRemove(id, out _);
+        _plates.TryRemove(motorcycle.Plate, out _);
 
         return Task.FromResult(true);
     }
