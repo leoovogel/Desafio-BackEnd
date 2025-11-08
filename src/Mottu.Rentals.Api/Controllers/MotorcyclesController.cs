@@ -64,4 +64,18 @@ public class MotorcyclesController(IMotorcycleRepository motorcycleRepository) :
 
         return NoContent();
     }
+    
+    [HttpDelete("{plate}")]
+    public async Task<IActionResult> DeleteByPlate(string plate)
+    {
+        if (string.IsNullOrWhiteSpace(plate))
+            return BadRequest(new { error = "Plate is required." });
+
+        // TODO: Verify if motorcycle has rentals before deleting
+        if ("hasRentals" == "false")
+            return Conflict(new { error = "Motorcycle cannot be deleted because it has rentals" });
+
+        var deleted = await motorcycleRepository.DeleteByPlateAsync(plate);
+        return deleted ? NoContent() : NotFound();
+    }
 }

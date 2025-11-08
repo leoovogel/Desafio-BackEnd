@@ -84,4 +84,20 @@ public class InMemoryMotorcycleRepository : IMotorcycleRepository
         _store[id] = updated;
         return Task.FromResult(true);
     }
+
+    public Task<bool> DeleteByPlateAsync(string plate)
+    {
+        if (string.IsNullOrWhiteSpace(plate))
+            return Task.FromResult(false);
+
+        var normalized = NormalizePlate(plate);
+
+        if (!_plates.TryGetValue(normalized, out var id))
+            return Task.FromResult(false);
+
+        _plates.TryRemove(normalized, out _);
+        _store.TryRemove(id, out _);
+
+        return Task.FromResult(true);
+    }
 }
