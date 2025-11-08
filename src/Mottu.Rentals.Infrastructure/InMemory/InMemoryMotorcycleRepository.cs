@@ -56,4 +56,32 @@ public class InMemoryMotorcycleRepository : IMotorcycleRepository
         motorcycles = motorcycles.Where(m => string.Equals(m.Plate, normalizedPlate, StringComparison.OrdinalIgnoreCase));
         return Task.FromResult(motorcycles);
     }
+
+    public Task<bool> UpdatePlateAsync(string currentPlate, string newPlate)
+    {
+        if (string.IsNullOrWhiteSpace(currentPlate) || string.IsNullOrWhiteSpace(newPlate))
+            return Task.FromResult(false);
+    
+        var normalizedCurrent = NormalizePlate(currentPlate);
+        var normalizedNew = NormalizePlate(newPlate);
+    
+        if (string.Equals(normalizedCurrent, normalizedNew, StringComparison.OrdinalIgnoreCase))
+            return Task.FromResult(true);
+    
+        if (!_plates.TryGetValue(normalizedCurrent, out var id) || !_store.TryGetValue(id, out var current) || !_plates.TryAdd(normalizedNew, id))
+            return Task.FromResult(false);
+        
+        _plates.TryRemove(normalizedCurrent, out _);
+        var updated = new Motorcycle
+        {
+            Id = current.Id,
+            Identifier = current.Identifier,
+            Year = current.Year,
+            Model = current.Model,
+            Plate = normalizedNew
+        };
+    
+        _store[id] = updated;
+        return Task.FromResult(true);
+    }
 }
