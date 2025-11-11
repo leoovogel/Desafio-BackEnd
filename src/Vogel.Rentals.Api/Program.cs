@@ -6,6 +6,7 @@ using Vogel.Rentals.Application.Validation;
 using Vogel.Rentals.Infrastructure.Contexts;
 using Vogel.Rentals.Infrastructure.Local;
 using Vogel.Rentals.Infrastructure.Repositories;
+using Vogel.Rentals.Infrastructure.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,8 +21,22 @@ builder.Services.AddScoped<IRentalRepository, RentalRepository>();
 builder.Services.AddScoped<IMotorcycleService, MotorcycleService>();
 builder.Services.AddScoped<ICourierService, CourierService>();
 builder.Services.AddScoped<IRentalService, RentalService>();
-// TODO: Temp, change to S3
-builder.Services.AddSingleton<IStorageService, LocalStorageService>();
+
+var awsKey = builder.Configuration["AWS_ACCESS_KEY_ID"];
+var awsSecret = builder.Configuration["AWS_SECRET_ACCESS_KEY"];
+var bucket = builder.Configuration["S3Storage:BucketName"];
+
+if (!string.IsNullOrEmpty(awsKey) && !string.IsNullOrEmpty(awsSecret) && !string.IsNullOrEmpty(bucket))
+{
+    builder.Services.Configure<S3Options>(builder.Configuration.GetSection("S3Storage"));
+    builder.Services.AddSingleton<IStorageService, S3StorageService>();
+    Console.WriteLine("Using Amazon S3 storage service");
+}
+else
+{
+    builder.Services.AddSingleton<IStorageService, LocalStorageService>();
+    Console.WriteLine("Using local storage service");
+}
 
 builder.Services.AddScoped<IMotorcycleValidator, MotorcycleValidator>();
 builder.Services.AddScoped<ICourierValidator, CourierValidator>();
