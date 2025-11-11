@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Vogel.Rentals.Application.Abstractions;
 using Vogel.Rentals.Domain.Entities;
+using Vogel.Rentals.Domain.Exceptions;
 using Vogel.Rentals.Infrastructure.Contexts;
 
 namespace Vogel.Rentals.Infrastructure.Repositories;
@@ -11,21 +12,19 @@ public class MotorcycleRepository(RentalsDbContext db) : IMotorcycleRepository
 
     public async Task<Motorcycle> AddAsync(Motorcycle motorcycle)
     {
-        ArgumentNullException.ThrowIfNull(motorcycle);
-
         if (string.IsNullOrWhiteSpace(motorcycle.Identifier) ||
             string.IsNullOrWhiteSpace(motorcycle.Model) ||
             string.IsNullOrWhiteSpace(motorcycle.Plate) ||
             motorcycle.Year <= 0)
         {
-            throw new InvalidOperationException("invalid motorcycle data");
+            throw new BusinessRuleException();
         }
 
         var plate = NormalizePlate(motorcycle.Plate);
 
         var plateInUse = await db.Motorcycles.AnyAsync(m => m.Plate == plate);
         if (plateInUse)
-            throw new InvalidOperationException("plate already exists");
+            throw new BusinessRuleException();
 
         motorcycle = new Motorcycle
         {
@@ -41,14 +40,13 @@ public class MotorcycleRepository(RentalsDbContext db) : IMotorcycleRepository
         return motorcycle;
     }
 
-    public async Task<IEnumerable<Motorcycle>> SearchAsync(string? id)
+    public async Task<Motorcycle> SearchByIdAsync(string id)
     {
-        var query = db.Motorcycles.AsNoTracking();
+        var moto = await db.Motorcycles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(m => m.Identifier == id);
 
-        if (!string.IsNullOrWhiteSpace(id))
-            query = query.Where(m => m.Identifier == id);
-
-        return await query.ToListAsync();
+        return moto ?? throw new NotFoundException("Moto não encontrada");
     }
 
     public async Task<IEnumerable<Motorcycle>> SearchByPlateAsync(string? plate)
@@ -64,52 +62,38 @@ public class MotorcycleRepository(RentalsDbContext db) : IMotorcycleRepository
         return await query.ToListAsync();
     }
 
-    public async Task<bool> UpdatePlateAsync(string id, string newPlate)
+    public async Task UpdatePlateAsync(string id, string newPlate)
     {
         if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(newPlate))
-            return false;
+            throw new BusinessRuleException();
 
         var normalizedNew = NormalizePlate(newPlate);
 
         var motorcycle = await db.Motorcycles.FirstOrDefaultAsync(m => m.Identifier == id);
         if (motorcycle is null)
-            return false;
+            throw new BusinessRuleException();
 
         if (string.Equals(motorcycle.Plate, normalizedNew))
-            return true;
+            return;
 
         var plateInUse = await db.Motorcycles.AnyAsync(m => m.Plate == normalizedNew);
         if (plateInUse)
-            return false;
+            throw new BusinessRuleException();
 
         motorcycle.Plate = normalizedNew;
         await db.SaveChangesAsync();
-
-        return true;
     }
 
-    public async Task<bool> DeleteAsync(string id)
+    public async Task DeleteAsync(string id)
     {
         if (string.IsNullOrWhiteSpace(id))
-            return false;
+            throw new BusinessRuleException();
 
         var motorcycle = await db.Motorcycles.FirstOrDefaultAsync(m => m.Identifier == id);
         if (motorcycle is null)
-            return false;
+            throw new BusinessRuleException();
 
         db.Motorcycles.Remove(motorcycle);
         await db.SaveChangesAsync();
-
-        return true;
-    }
-
-    public async Task<Motorcycle?> GetByIdAsync(string id)
-    {
-        if (string.IsNullOrWhiteSpace(id))
-            return null;
-
-        return await db.Motorcycles
-            .AsNoTracking()
-            .FirstOrDefaultAsync(m => m.Identifier == id);
     }
 }

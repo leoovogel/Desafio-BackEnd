@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Vogel.Rentals.Api.Middlewares;
 using Vogel.Rentals.Application.Abstractions;
 using Vogel.Rentals.Infrastructure.Contexts;
 using Vogel.Rentals.Infrastructure.InMemory;
@@ -26,6 +27,8 @@ builder.Services.AddDbContext<RentalsDbContext>(options =>
 });
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseSwagger();
 app.UseSwaggerUI();

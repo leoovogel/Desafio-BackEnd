@@ -39,17 +39,12 @@ public class MotorcyclesController(IMotorcycleRepository motorcycleRepository) :
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> Search(string? id)
+    public async Task<IActionResult> SearchById(string id)
     {
-        // TODO: Implement request mal formada 400
-        if (id != null && string.IsNullOrWhiteSpace(id))
+        if (string.IsNullOrWhiteSpace(id))
             return BadRequest(new { mensagem = "Request mal formada" });
         
-        var motorcycles = await motorcycleRepository.SearchAsync(id);
-        
-        // TODO: Implement not found 404
-        if (id != null && !motorcycles.Any())
-            return NotFound(new { mensagem = "Moto não encontrada" });
+        var motorcycles = await motorcycleRepository.SearchByIdAsync(id);
         
         return Ok(motorcycles);
     }
@@ -57,14 +52,10 @@ public class MotorcyclesController(IMotorcycleRepository motorcycleRepository) :
     [HttpPut("{id}/placa")]
     public async Task<IActionResult> UpdatePlate([FromBody] UpdatePlateByPlateRequest req, string id)
     {
-        // TODO: Implement dados inválidos 400
         if (string.IsNullOrWhiteSpace(req.Placa) || string.IsNullOrWhiteSpace(id))
             return BadRequest(new { mensagem = "Dados inválidos" });
         
-        var updated = await motorcycleRepository.UpdatePlateAsync(id, req.Placa);
-        
-        if (!updated)
-            return BadRequest(new { mensagem = "Dados inválidos" });
+        await motorcycleRepository.UpdatePlateAsync(id, req.Placa);
 
         return Ok(new { mensagem = "Placa atualizada com sucesso" });
     }
@@ -79,7 +70,7 @@ public class MotorcyclesController(IMotorcycleRepository motorcycleRepository) :
         // if ("hasRentals" == "false")
         //     return BadRequest(new { mensagem = "Dados inválidos" });
 
-        var deleted = await motorcycleRepository.DeleteAsync(id);
-        return deleted ? Ok() : BadRequest(new { mensagem = "Dados inválidos" });
+        await motorcycleRepository.DeleteAsync(id);
+        return Ok();
     }
 }
