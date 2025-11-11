@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Vogel.Rentals.Application.Abstractions;
 using Vogel.Rentals.Application.Contracts;
-using Vogel.Rentals.Domain.Entities;
 
 namespace Vogel.Rentals.Api.Controllers;
 

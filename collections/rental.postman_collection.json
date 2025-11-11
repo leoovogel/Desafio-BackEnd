@@ -1,0 +1,83 @@
+{
+	"info": {
+		"_postman_id": "f55b9766-78a8-44fd-a523-7a34f99ac7a8",
+		"name": "rental",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "21619458",
+		"_collection_link": "https://red-capsule-663239.postman.co/workspace/Desafio-Mottu~8e3c7a85-cf0a-417c-8ddc-bc40003126d5/collection/21619458-f55b9766-78a8-44fd-a523-7a34f99ac7a8?action=share&source=collection_link&creator=21619458"
+	},
+	"item": [
+		{
+			"name": "Create",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"entregador_id\": \"entregador123\",\n  \"moto_id\": \"moto123\",\n  \"data_inicio\": \"2025-11-11T00:00:00Z\",\n  \"data_termino\": \"2025-11-18T23:59:59Z\",\n  \"data_previsao_termino\": \"2025-11-18T23:59:59Z\",\n  \"plano\": 7\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{URL}}/locacao",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"locacao"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{URL}}/locacao/{{id}}",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"locacao",
+						"{{id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Return",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"data_devolucao\": \"2025-11-13T18:00:00Z\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{URL}}/locacao/{{id}}/devolucao",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"locacao",
+						"{{id}}",
+						"devolucao"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
