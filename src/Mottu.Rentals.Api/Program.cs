@@ -10,6 +10,7 @@ builder.Services.AddSwaggerGen();
 // TODO: Temp, change to DB
 builder.Services.AddSingleton<IMotorcycleRepository, InMemoryMotorcycleRepository>();
 builder.Services.AddSingleton<ICourierRepository, InMemoryCourierRepository>();
+builder.Services.AddSingleton<IRentalRepository, InMemoryRentalRepository>();
 // TODO: Temp, change to S3
 builder.Services.AddSingleton<IStorageService, LocalStorageService>();
 

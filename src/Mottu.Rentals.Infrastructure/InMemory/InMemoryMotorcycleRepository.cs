@@ -102,4 +102,14 @@ public class InMemoryMotorcycleRepository : IMotorcycleRepository
 
         return Task.FromResult(true);
     }
+    
+    public Task<Motorcycle?> GetByIdAsync(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+            return Task.FromResult<Motorcycle?>(null);
+
+        var moto = _store.Values.FirstOrDefault(m => string.Equals(m.Identifier, id));
+
+        return Task.FromResult(moto);
+    }
 }

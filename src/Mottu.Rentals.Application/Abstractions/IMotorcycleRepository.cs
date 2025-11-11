@@ -9,4 +9,5 @@ public interface IMotorcycleRepository
     Task<IEnumerable<Motorcycle>> SearchByPlateAsync(string? plate);
     Task<bool> UpdatePlateAsync(string id, string newPlate);
     Task<bool> DeleteAsync(string id);
+    Task<Motorcycle?> GetByIdAsync(string id);
 }
