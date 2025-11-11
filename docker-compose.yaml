@@ -13,6 +13,16 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_REGION=${AWS_REGION}
+      - RabbitMq__HostName=rabbitmq
+      - RabbitMq__UserName=guest
+      - RabbitMq__Password=guest
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: vogel-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
 
   db:
     image: postgres:16

@@ -5,6 +5,7 @@ using Vogel.Rentals.Application.Services;
 using Vogel.Rentals.Application.Validation;
 using Vogel.Rentals.Infrastructure.Contexts;
 using Vogel.Rentals.Infrastructure.Local;
+using Vogel.Rentals.Infrastructure.Messaging;
 using Vogel.Rentals.Infrastructure.Repositories;
 using Vogel.Rentals.Infrastructure.Storage;
 
@@ -37,6 +38,10 @@ else
     builder.Services.AddSingleton<IStorageService, LocalStorageService>();
     Console.WriteLine("Using local storage service");
 }
+
+builder.Services.Configure<RabbitmQOptions>(builder.Configuration.GetSection("RabbitMq"));
+builder.Services.AddSingleton<IMotorcycleEventPublisher, RabbitMqMotorcycleEventPublisher>();
+builder.Services.AddHostedService<MotorcycleCreatedConsumer>();
 
 builder.Services.AddScoped<IMotorcycleValidator, MotorcycleValidator>();
 builder.Services.AddScoped<ICourierValidator, CourierValidator>();

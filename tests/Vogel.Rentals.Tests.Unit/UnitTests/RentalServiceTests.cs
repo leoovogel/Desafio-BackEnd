@@ -11,8 +11,6 @@ namespace Vogel.Rentals.Tests.Unit.UnitTests;
 
 public class RentalServiceTests
 {
-    #region CreateAsync
-
     [Fact]
     public async Task CreateAsync_Should_ThrowBusinessRule_WhenStartDateAfterExpectedEndDate()
     {
@@ -197,11 +195,7 @@ public class RentalServiceTests
 
         rentalRepo.Verify(r => r.AddAsync(It.IsAny<Rental>()), Times.Once);
     }
-
-    #endregion
-
-    #region GetByIdAsync
-
+    
     [Fact]
     public async Task GetByIdAsync_Should_ThrowNotFound_WhenRentalDoesNotExist()
     {
@@ -224,10 +218,6 @@ public class RentalServiceTests
         await act.Should().ThrowAsync<NotFoundException>()
                  .WithMessage("Locação não encontrada");
     }
-
-    #endregion
-
-    #region RentalReturnAsync
 
     [Fact]
     public async Task RentalReturnAsync_Should_ThrowBusinessRule_WhenRentalDoesNotExist()
@@ -333,6 +323,4 @@ public class RentalServiceTests
         rentalRepo.Verify(r => r.UpdateAsync(It.Is<Rental>(x => x.Identifier == id && x.ReturnDate == returnDate)),
                           Times.Once);
     }
-
-    #endregion
 }

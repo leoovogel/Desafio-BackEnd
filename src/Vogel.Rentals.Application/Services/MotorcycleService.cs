@@ -7,7 +7,8 @@ namespace Vogel.Rentals.Application.Services;
 
 public class MotorcycleService(
     IMotorcycleRepository motorcycleRepository,
-    IRentalRepository rentalRepository)
+    IRentalRepository rentalRepository,
+    IMotorcycleEventPublisher eventPublisher)
     : IMotorcycleService
 {
     public async Task<Motorcycle> CreateAsync(CreateMotorcycleRequest req)
@@ -20,7 +21,11 @@ public class MotorcycleService(
             Plate = req.Placa
         };
 
-        return await motorcycleRepository.AddAsync(motorcycle);
+        motorcycle = await motorcycleRepository.AddAsync(motorcycle);
+
+        await eventPublisher.PublishMotorcycleCreatedAsync(motorcycle);
+        
+        return motorcycle;
     }
 
     public async Task DeleteAsync(string id)

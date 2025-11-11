@@ -15,11 +15,12 @@ public class MotorcycleServiceTests
         // Arrange
         var motoRepo   = new Mock<IMotorcycleRepository>();
         var rentalRepo = new Mock<IRentalRepository>();
+        var eventPublisher = new Mock<IMotorcycleEventPublisher>();
 
         motoRepo.Setup(r => r.GetByIdAsync("moto-nao-existe"))
                 .ReturnsAsync((Motorcycle?)null);
 
-        var service = new MotorcycleService(motoRepo.Object, rentalRepo.Object);
+        var service = new MotorcycleService(motoRepo.Object, rentalRepo.Object, eventPublisher.Object);
 
         // Act
         var act = () => service.DeleteAsync("moto-nao-existe");
@@ -35,6 +36,7 @@ public class MotorcycleServiceTests
         // Arrange
         var motoRepo   = new Mock<IMotorcycleRepository>();
         var rentalRepo = new Mock<IRentalRepository>();
+        var eventPublisher = new Mock<IMotorcycleEventPublisher>();
 
         motoRepo.Setup(r => r.GetByIdAsync("moto001"))
                 .ReturnsAsync(new Motorcycle
@@ -48,7 +50,7 @@ public class MotorcycleServiceTests
         rentalRepo.Setup(r => r.HasRentalsForMotorcycleAsync("moto001"))
                   .ReturnsAsync(true);
 
-        var service = new MotorcycleService(motoRepo.Object, rentalRepo.Object);
+        var service = new MotorcycleService(motoRepo.Object, rentalRepo.Object, eventPublisher.Object);
 
         // Act
         var act = () => service.DeleteAsync("moto001");
@@ -64,6 +66,7 @@ public class MotorcycleServiceTests
         // Arrange
         var motoRepo   = new Mock<IMotorcycleRepository>();
         var rentalRepo = new Mock<IRentalRepository>();
+        var eventPublisher = new Mock<IMotorcycleEventPublisher>();
 
         motoRepo.Setup(r => r.GetByIdAsync("moto001"))
                 .ReturnsAsync(new Motorcycle
@@ -77,7 +80,7 @@ public class MotorcycleServiceTests
         rentalRepo.Setup(r => r.HasRentalsForMotorcycleAsync("moto001"))
                   .ReturnsAsync(false);
 
-        var service = new MotorcycleService(motoRepo.Object, rentalRepo.Object);
+        var service = new MotorcycleService(motoRepo.Object, rentalRepo.Object, eventPublisher.Object);
 
         // Act
         await service.DeleteAsync("moto001");

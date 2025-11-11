@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Vogel.Rentals.Domain.Entities;
 
 namespace Vogel.Rentals.Infrastructure.Contexts;
@@ -8,6 +9,7 @@ public class RentalsDbContext(DbContextOptions<RentalsDbContext> options) : DbCo
     public DbSet<Motorcycle> Motorcycles => Set<Motorcycle>();
     public DbSet<Courier> Couriers => Set<Courier>();
     public DbSet<Rental> Rentals => Set<Rental>();
+    public DbSet<MotorcycleNotification> MotorcycleNotifications => Set<MotorcycleNotification>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -16,6 +18,7 @@ public class RentalsDbContext(DbContextOptions<RentalsDbContext> options) : DbCo
         ConfigureMotorcycle(modelBuilder);
         ConfigureCourier(modelBuilder);
         ConfigureRental(modelBuilder);
+        ConfigureMotorcycleNotification(modelBuilder);
     }
 
     private static void ConfigureMotorcycle(ModelBuilder modelBuilder)
@@ -150,5 +153,37 @@ public class RentalsDbContext(DbContextOptions<RentalsDbContext> options) : DbCo
             .WithMany(motorrcycle => motorrcycle.Rentals)
             .HasForeignKey(rental => rental.MotorcycleId)
             .HasPrincipalKey(motorcycle => motorcycle.Identifier);
+    }
+    
+    private static void ConfigureMotorcycleNotification(ModelBuilder modelBuilder)
+    {
+        var mn = modelBuilder.Entity<MotorcycleNotification>();
+        
+        mn.ToTable("motorcycle_notifications");
+        
+        mn.HasKey(x => x.Identifier);
+
+        mn.Property(x => x.Identifier)
+            .HasColumnName("identifier")
+            .HasMaxLength(50)
+            .IsRequired();
+
+        mn.Property(x => x.Year)
+            .HasColumnName("year")
+            .IsRequired();
+
+        mn.Property(x => x.Model)
+            .HasColumnName("model")
+            .HasMaxLength(100)
+            .IsRequired();
+
+        mn.Property(x => x.Plate)
+            .HasColumnName("plate")
+            .HasMaxLength(10)
+            .IsRequired();
+
+        mn.Property(x => x.CreatedAt)
+            .HasColumnName("created_at")
+            .IsRequired();
     }
 }
