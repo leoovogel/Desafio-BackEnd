@@ -24,7 +24,7 @@ cd vogel-rentals
 Execute na raiz do projeto:
 ```bash
 docker-compose up --build
-````
+```
 
 Isso irá subir os serviços:
 | Serviço    | Porta   | Descrição                      |
