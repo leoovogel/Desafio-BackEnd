@@ -16,15 +16,15 @@ Principais tecnologias: ASP.NET Core, PostgreSQL, Docker, RabbitMQ, Amazon S3 (c
 
 ### 1️⃣ Clonar o repositório
 ```bash
-git clone https://github.com/seuusuario/vogel-rentals.git
-cd vogel-rentals
+git clone https://github.com/leoovogel/Desafio-BackEnd.git
+cd Desafio-BackEnd
 ```
 
 ### 2️⃣ Subir os containers
 Execute na raiz do projeto:
 ```bash
 docker-compose up --build
-````
+```
 
 Isso irá subir os serviços:
 | Serviço    | Porta   | Descrição                      |
