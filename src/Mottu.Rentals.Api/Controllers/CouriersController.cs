@@ -28,15 +28,13 @@ public class CouriersController(ICourierRepository courierRepository, IStorageSe
         
         if (await courierRepository.CnhNumberExistsAsync(req.NumeroCnh))
             return Conflict(new { error = "O número CNH já existe" });
-        
-        var birthDate = DateOnly.FromDateTime(req.DataNascimento);
 
         var entity = new Courier
         {
             Identificador = req.Identificador,
             Nome = req.Nome,
             Cnpj = req.Cnpj,
-            DataNascimento = birthDate,
+            DataNascimento = req.DataNascimento,
             NumeroCnh = req.NumeroCnh,
             TipoCnh = cnhType,
             ImagemCnh = null // TODO: Implement after

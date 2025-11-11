@@ -19,4 +19,13 @@ public class InMemoryRentalRepository : IRentalRepository
         _store.TryGetValue(id, out var rental);
         return Task.FromResult(rental);
     }
+
+    public Task<Rental> UpdateAsync(Rental rental)
+    {
+        if (rental.Identifier == Guid.Empty)
+            throw new InvalidOperationException("Rental must have an Id to be updated.");
+
+        _store[rental.Identifier] = rental;
+        return Task.FromResult(rental);
+    }
 }

@@ -26,8 +26,8 @@ public class MotorcyclesController(IMotorcycleRepository motorcycleRepository) :
             Plate = req.Placa
         };
 
-        await motorcycleRepository.AddAsync(motorcycle);
-        return Created("", null);
+        var res = await motorcycleRepository.AddAsync(motorcycle);
+        return Created($"/motos/{motorcycle.Identifier}", res);
     }
     
     [HttpGet]

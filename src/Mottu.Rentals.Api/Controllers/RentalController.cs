@@ -25,33 +25,21 @@ public class RentalsController(ICourierRepository courierRepository, IMotorcycle
         }
 
         var courier = await courierRepository.GetByIdentificadorAsync(req.EntregadorId);
-        if (courier is null)
-            // return NotFound(new { mensagem = "Entregador não encontrado" });
+        if (courier is null || courier.TipoCnh != CnhType.A && courier.TipoCnh != CnhType.AB)
             return BadRequest(new { mensagem = "Dados inválidos" });
 
-        if (courier.TipoCnh != CnhType.A && courier.TipoCnh != CnhType.AB)
-            // return BadRequest(new { mensagem = "Entregador não habilitado na categoria A" });
+        var motorcycle = await motorcycleRepository.GetByIdAsync(req.MotoId);
+        if (motorcycle is null)
+            return BadRequest(new { mensagem = "Dados inválidos" });
+ 
+        if (req.DataInicio > req.DataPrevisaoTermino)
             return BadRequest(new { mensagem = "Dados inválidos" });
 
-        var moto = await motorcycleRepository.GetByIdAsync(req.MotoId);
-        if (moto is null)
-            // return NotFound(new { mensagem = "Moto não encontrada" });
-            return BadRequest(new { mensagem = "Dados inválidos" });
-
-        var start = DateOnly.FromDateTime(req.DataInicio);
-        var expectedEnd = DateOnly.FromDateTime(req.DataPrevisaoTermino);
-        var end = DateOnly.FromDateTime(req.DataTermino);
-
-        if (start > expectedEnd || expectedEnd > end)
-            // return BadRequest(new { mensagem = "Período de datas inválido." });
-            return BadRequest(new { mensagem = "Dados inválidos" });
-
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
-        var requiredStart = today.AddDays(1);
-
-        if (start != requiredStart)
-            // return BadRequest(new { mensagem = "Data de início deve ser o primeiro dia após a criação da locação." });
-            return BadRequest(new { mensagem = "Dados inválidos" });
+        // var today = DateTime.Now;
+        // var requiredStart = today.AddDays(1);
+        //
+        // if (req.DataInicio != requiredStart)
+        //     return BadRequest(new { mensagem = "Dados inválidos" });
 
         if (!RentalPlanCatalog.TryGet(req.Plano, out var plan, out var dailyRate))
             return BadRequest(new { mensagem = "Dados inválidos" });
@@ -60,26 +48,71 @@ public class RentalsController(ICourierRepository courierRepository, IMotorcycle
         {
             CourierId = req.EntregadorId,
             MotorcycleId = req.MotoId,
-            StartDate = start,
-            ExpectedEndDate = expectedEnd,
-            EndDate = end,
+            StartDate = req.DataInicio,
+            ExpectedEndDate = req.DataPrevisaoTermino,
+            EndDate = req.DataTermino,
             Plan = plan,
             DailyRate = dailyRate
         };
 
         var saved = await rentalRepository.AddAsync(rental);
 
-        var res = new RentalResponse(
+        var res = new CreateRentalResponse(
             saved.Identifier,
             saved.CourierId,
             saved.MotorcycleId,
-            saved.StartDate.ToDateTime(TimeOnly.MinValue),
-            saved.EndDate.ToDateTime(TimeOnly.MaxValue),
-            saved.ExpectedEndDate.ToDateTime(TimeOnly.MaxValue),
+            saved.StartDate,
+            saved.EndDate,
+            saved.ExpectedEndDate,
             (int)saved.Plan,
             saved.DailyRate
         );
 
         return Created($"/locacoes/{saved.Identifier}", res);
+    }
+    
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(string id)
+    {
+        if (!Guid.TryParse(id, out var idGuid) || idGuid == Guid.Empty)
+            return BadRequest(new { mensagem = "Dados inválidos" });
+
+        var rental = await rentalRepository.GetByIdAsync(idGuid);
+        if (rental is null)
+            return NotFound(new { mensagem = "Locação não encontrada" });
+    
+        var res = new RentalResponse(
+            rental.Identifier,
+            rental.DailyRate,
+            rental.CourierId,
+            rental.MotorcycleId,
+            rental.StartDate,
+            rental.EndDate,
+            rental.ExpectedEndDate,
+            rental.ReturnDate ?? DateTime.MinValue
+        );
+
+        return Ok(res);
+    }
+
+    [HttpPut("{id:guid}/devolucao")]
+    public async Task<IActionResult> CalculateTotal(Guid id, [FromBody] CalculateRentalTotalRequest? req)
+    {
+        if (id == Guid.Empty || req is null || req.DataDevolucao == default)
+            return BadRequest(new { mensagem = "Dados inválidos" });
+
+        var rental = await rentalRepository.GetByIdAsync(id);
+        if (rental is null)
+            return BadRequest(new { mensagem = "Dados inválidos" });
+
+        if (req.DataDevolucao < rental.StartDate)
+            return BadRequest(new { mensagem = "Dados inválidos" });
+
+        var total = RentalPlanCatalog.CalculateTotal(rental, req.DataDevolucao);
+
+        await rentalRepository.UpdateAsync(rental);
+
+        var res = new RentalTotalValueResponse(total, "Data de devolução informada com sucesso");
+        return Ok(res);
     }
 }
