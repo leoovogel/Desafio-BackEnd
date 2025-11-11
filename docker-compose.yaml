@@ -1,7 +1,28 @@
-version: "3.9"
 services:
   api:
     build:
-      context: ./src/Mottu.Rentals.Api
+      context: .
+      dockerfile: src/Vogel.Rentals.Api/Dockerfile
     ports:
       - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=vogel_rentals;Username=vogel;Password=vogel123
+
+  db:
+    image: postgres:16
+    container_name: vogel-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: vogel
+      POSTGRES_PASSWORD: vogel123
+      POSTGRES_DB: vogel_rentals
+    ports:
+      - "5432:5432"
+    volumes:
+      - vogel_pg_data:/var/lib/postgresql/data
+
+volumes:
+  vogel_pg_data:

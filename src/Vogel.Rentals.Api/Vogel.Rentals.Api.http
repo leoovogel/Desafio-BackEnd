@@ -1,0 +1,6 @@
+@Vogel.Rentals.Api_HostAddress = http://localhost:5224
+
+GET {{Vogel.Rentals.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
