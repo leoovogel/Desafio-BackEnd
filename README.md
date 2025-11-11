@@ -139,19 +139,19 @@ dotnet test
 
 ### 🏗️ Estrutura de Pastas
 
-src/
- ├── Vogel.Rentals.Api/             → Controllers, Middlewares, Startup
- ├── Vogel.Rentals.Application/     → Services, Interfaces, Validators
- ├── Vogel.Rentals.Domain/          → Entidades e Regras de Negócio
- ├── Vogel.Rentals.Infrastructure/  → EF, Repositórios, Context, S3, RabbitMQ
-tests/
+src/ \
+ ├── Vogel.Rentals.Api/             → Controllers, Middlewares, Startup \
+ ├── Vogel.Rentals.Application/     → Services, Interfaces, Validators \
+ ├── Vogel.Rentals.Domain/          → Entidades e Regras de Negócio \
+ ├── Vogel.Rentals.Infrastructure/  → EF, Repositórios, Context, S3, RabbitMQ \
+tests/ \
  └── Vogel.Rentals.Tests.Unit/      → Testes unitários
 
 ---
 
 ### 👨‍💻 Autor
 
-[Leonardo Vogel](https://www.linkedin.com/in/leonardovogel/)
-Desenvolvedor Backend .NET
-📧 [contato@leovogel.dev](contato@leovogel.dev)
+[Leonardo Vogel](https://www.linkedin.com/in/leonardovogel/) \
+Desenvolvedor Backend .NET \
+📧 [contato@leovogel.dev](contato@leovogel.dev) \
 
