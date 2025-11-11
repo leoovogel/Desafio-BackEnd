@@ -1,94 +1,157 @@
 # 🏍️ Vogel Rentals API
 
-API desenvolvida em **.NET 8 / C#** para o desafio técnico de backend.  
-Ela simula um sistema de **gestão de motos, entregadores e locações**, incluindo regras de negócio, persistência em PostgreSQL e arquitetura modular.
+**API REST para aluguel de motos e gestão de entregadores**, desenvolvida em **.NET 8 (C#)**, seguindo Clean Architecture, DDD e boas práticas.  
+Principais tecnologias: ASP.NET Core, PostgreSQL, Docker, RabbitMQ, Amazon S3 (com fallback local), FluentValidation, xUnit, Serilog e Swagger.
 
 ---
 
-## 🧩 Visão geral
+### ⚙️ Requisitos
 
-A API segue uma arquitetura em camadas:
+- **Docker** *(caso queira rodar com docker)* ou - **.NET SDK 8.0+** *(caso queira rodar localmente)*
+- **AWS Account** *(opcional, apenas se quiser testar S3 real)*
 
-src/ \
-├── Vogel.Rentals.Api             → Ponto de entrada da aplicação (controllers) \
-├── Vogel.Rentals.Application     → Casos de uso, serviços e validadores \
-├── Vogel.Rentals.Domain          → Entidades e regras de domínio \
-├── Vogel.Rentals.Infrastructure  → Persistência (EF Core / Postgres) e integrações externas
+## ▶️ Como Rodar o Projeto (Docker / local)
+
+> **Observação:** O armazenamento de imagens de CNH pode ser feito via **Amazon S3** (se variáveis AWS estiverem configuradas) ou, caso contrário, será utilizado **armazenamento local** como fallback automático.
+
+### 1️⃣ Clonar o repositório
+```bash
+git clone https://github.com/seuusuario/vogel-rentals.git
+cd vogel-rentals
+```
+
+### 2️⃣ Subir os containers
+Execute na raiz do projeto:
+```bash
+docker-compose up --build
+````
+
+Isso irá subir os serviços:
+| Serviço    | Porta   | Descrição                      |
+|------------|---------|--------------------------------|
+| API        | `8080`  | API REST para aluguel de motos |
+| PostgreSQL | `5432`  | Banco de dados                 |
+| RabbitMQ   | `15672` | Painel de mensageria           |
 
 ---
 
-## ⚙️ Como Rodar o Projeto
+### 3️⃣ Acessar a aplicação
 
-### 🔸 Pré-requisitos
+##### ✅ Health Check:
+```bash
+curl http://localhost:8080/hc
+```
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop) instalado e em execução  
-- Opcional: [Postman](https://www.postman.com/) ou [Insomnia](https://insomnia.rest/) para testar os endpoints (As collections estão disponíveis na pasta `collections/`)
+Retorno esperado:
+
+```json
+{ "status": "ok" }
+```
+
+<br>
+
+##### 🌐 Swagger:
+Abra no navegador:
+
+[http://localhost:8080/swagger](http://localhost:8080/swagger)
 
 ---
-### 🔹 Passos para execução
 
-1. **Clone o repositório**
+### 4️⃣ Variáveis de Ambiente (opcional)
+As variáveis padrão já estão no docker-compose.yml, então o projeto funciona imediatamente.
+Mas você pode renomear o arquivo `.env.example` para `.env` e usar suas próprias keys aws se quiser testar o S3 real.
 
-   ```bash
-   git clone <seu-repo-ou-fork>
-   ```
+**🔹 Banco de dados**
+```yaml
+ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=vogel_rentals;Username=vogel;Password=vogel123
+```
 
-<br>
+**🔹 RabbitMQ**
+```yaml
+RabbitMq__HostName=vogel-rabbitmq
+RabbitMq__UserName=guest
+RabbitMq__Password=guest
+RabbitMq__QueueName=motorcycle_created
+```
 
-2. **Suba os containers com Docker Compose**
+**🔹 Amazon S3 (opcional)**
+Caso deseje testar o upload real para um bucket AWS:
+```yaml
+export AWS_ACCESS_KEY_ID=SEU_ACCESS_KEY
+export AWS_SECRET_ACCESS_KEY=SEU_SECRET
+export S3Storage__BucketName=seu-bucket
+export S3Storage__Region=usa-east-1
+```
+> Se essas variáveis não estiverem presentes, a API automaticamente usa armazenamento local em disco (sem dependências externas).
 
-   No terminal, execute:
+---
 
-   ```bash
-   docker-compose up --build
-   ```
+### 5️⃣ Banco de dados e migrations
 
-    Isso iniciará: \
-        - A API: http://localhost:8080 \
-        - O banco PostgreSQL: localhost:5432 \
+O banco é criado automaticamente via Docker.
 
-<br>
+Conexão para acessar via DataGrip/DBeaver:
+	•	Host: localhost
+	•	Porta: 5432
+	•	Banco: vogel_rentals
+	•	Usuário: vogel
+	•	Senha: vogel123
 
-3. **Acesse a documentação Swagger**
+---
 
-- http://localhost:8080/swagger \
-Nele estão todos os endpoints disponíveis para teste.
+### 6️⃣ RabbitMQ
+Acesse o painel de controle do RabbitMQ em:
+> [http://localhost:15672](http://localhost:15672)
 
-🗃️ Banco de Dados
+Login:
+- Usuário: `guest`
+- Senha: `guest`
 
-PostgreSQL é utilizado como base de dados.
-Os dados de conexão padrão (definidos no docker-compose.yml) são:
+Quando uma moto é cadastrada, a aplicação publica uma mensagem nessa fila.
+Se o ano da moto for 2024, o consumidor grava uma notificação no banco.
 
-| Variável | Valor         |
-| -------- | ------------- |
-| Host     | localhost     |
-| Porta    | 5432          |
-| Database | vogel_rentals |
-| Usuário  | vogel         |
-| Senha    | vogel123      |
+---
 
-<br>
+### 7️⃣ Testes Unitários
 
-🧱 Tecnologias Utilizadas \
-	•	.NET 8 / C# \
-	•	Entity Framework Core \
-	•	PostgreSQL \
-	•	Docker + Docker Compose \
-	•	Swagger (Swashbuckle) \
-	•	Clean Architecture / Repository Pattern \
+Para rodar os testes unitários, execute:
+```bash
+dotnet test
+```
 
-<br>
+---
 
-🧠 Decisões Técnicas \
-	•	Arquitetura limpa: divisão entre Domain, Application, Infrastructure e Api para desacoplamento e testabilidade. \
-	•	Repositories: abstraem o acesso a dados, permitindo trocar o armazenamento (InMemory → Postgres). \
-	•	Services: concentram regras de negócio, mantendo Controllers simples. \
-	•	Validators: centralizam validações de entrada. \
-	•	Tratamento de exceções: via middlewares customizados e BusinessRuleException para erros de negócio.
+## 📖 Detalhes do Projeto
 
-<br>
+### 🚀 Tecnologias Utilizadas
 
-👨‍💻 Autor
+- **.NET 8 / ASP.NET Core Web API**
+- **Entity Framework Core** (PostgreSQL)
+- **Docker & Docker Compose**
+- **RabbitMQ** (mensageria e eventos assíncronos)
+- **Amazon S3** *(com fallback para armazenamento local)*
+- **FluentValidation** (validações customizadas)
+- **xUnit + FluentAssertions + Moq** (testes unitários)
+- **Serilog / Microsoft Logging** (logs estruturados)
+- **Swagger** (documentação automática de endpoints)
 
-Desenvolvido por [Leonardo Vogel](https://www.linkedin.com/in/leonardovogel/)  \
-Contato: [contato@leovogel.dev](contato@leovogel.dev)
+---
+
+### 🏗️ Estrutura de Pastas
+
+src/
+ ├── Vogel.Rentals.Api/             → Controllers, Middlewares, Startup
+ ├── Vogel.Rentals.Application/     → Services, Interfaces, Validators
+ ├── Vogel.Rentals.Domain/          → Entidades e Regras de Negócio
+ ├── Vogel.Rentals.Infrastructure/  → EF, Repositórios, Context, S3, RabbitMQ
+tests/
+ └── Vogel.Rentals.Tests.Unit/      → Testes unitários
+
+---
+
+### 👨‍💻 Autor
+
+[Leonardo Vogel](https://www.linkedin.com/in/leonardovogel/)
+Desenvolvedor Backend .NET
+📧 [contato@leovogel.dev](contato@leovogel.dev)
+
