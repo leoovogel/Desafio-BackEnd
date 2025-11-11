@@ -22,38 +22,21 @@ public class CouriersController(ICourierRepository courierRepository, IStorageSe
             string.IsNullOrWhiteSpace(req.TipoCnh) ||
             !TryParseCnhType(req.TipoCnh, out var cnhType))
             return BadRequest(new { mensagem = "Dados inválidos" });
-        
-        if (await courierRepository.CnpjExistsAsync(req.Cnpj))
-            return Conflict(new { mensagem = "O CNPJ já existe." });
-        
-        if (await courierRepository.CnhNumberExistsAsync(req.NumeroCnh))
-            return Conflict(new { error = "O número CNH já existe" });
 
         var entity = new Courier
         {
-            Identificador = req.Identificador,
-            Nome = req.Nome,
+            Identifier = req.Identificador,
+            Name = req.Nome,
             Cnpj = req.Cnpj,
-            DataNascimento = req.DataNascimento,
-            NumeroCnh = req.NumeroCnh,
-            TipoCnh = cnhType,
-            ImagemCnh = null // TODO: Implement after
+            BirthDate = req.DataNascimento,
+            CnhNumber = req.NumeroCnh,
+            CnhType = cnhType,
+            CnhImage = null // TODO: Implement after
         };
 
         var saved = await courierRepository.AddAsync(entity);
 
-        var res = new CourierResponse(
-            saved.Identificador,
-            saved.Nome,
-            saved.Cnpj,
-            // TODO: Confirm date format "dd-MM-yyyy"
-            saved.DataNascimento.ToString("dd-MM-yyyy"),
-            saved.NumeroCnh,
-            saved.TipoCnh switch { CnhType.A => "A", CnhType.B => "B", CnhType.AB => "A+B", _ => "A" },
-            saved.ImagemCnh
-        );
-
-        return Created($"/couriers/{saved.Identificador}", res);
+        return Created($"/couriers/{saved.Identifier}", null);
     }
 
     [HttpPost("{id}/cnh")]
@@ -62,39 +45,25 @@ public class CouriersController(ICourierRepository courierRepository, IStorageSe
         if (string.IsNullOrWhiteSpace(id) || req is null || string.IsNullOrWhiteSpace(req.ImagemCnh))
             return BadRequest(new { mensagem = "Dados inválidos" });
 
-        var courier = await courierRepository.GetByIdentificadorAsync(id);
+        var courier = await courierRepository.GetByIdentifierAsync(id);
         if (courier is null)
             return NotFound(new { mensagem = "Dados inválidos" });
 
-        if (!TryDecodeImage(req.ImagemCnh, out var bytes, out var contentType, out var extension, out var error))
-            return BadRequest(new { mensagem = error });
+        if (!TryDecodeImage(req.ImagemCnh, out var bytes, out var contentType, out var extension))
+            return BadRequest(new { mensagem = "Dados inválidos" });
 
         var fileName = $"{id}_cnh_{DateTime.UtcNow:yyyyMMddHHmmssfff}{extension}";
         var storageKey = await storageService.SaveAsync(fileName, bytes);
 
-        var updatedOk = await courierRepository.UpdateCnhImageAsync(id, storageKey);
-        if (!updatedOk)
-            return StatusCode(StatusCodes.Status500InternalServerError, new { mensagem = "Não foi possível atualizar a imagem da CNH." });
+        await courierRepository.UpdateCnhImageAsync(id, storageKey);
 
-        var updated = await courierRepository.GetByIdentificadorAsync(id) ?? courier;
-
-        var res = new CourierResponse(
-            updated.Identificador,
-            updated.Nome,
-            updated.Cnpj,
-            updated.DataNascimento.ToString("dd-MM-yyyy"),
-            updated.NumeroCnh,
-            updated.TipoCnh switch { CnhType.A => "A", CnhType.B => "B", CnhType.AB => "A+B", _ => "A" },
-            updated.ImagemCnh
-        );
-
-        return Ok(res);
+        return Created($"/couriers/{id}/cnh", null);
     }
 
     private static bool TryParseCnhType(string input, out CnhType cnh)
     {
-        var v = input.Trim().ToUpperInvariant();
-        cnh = v switch
+        var typeUpper = input.Trim().ToUpperInvariant();
+        cnh = typeUpper switch
         {
             "A"   => CnhType.A,
             "B"   => CnhType.B,
@@ -105,18 +74,14 @@ public class CouriersController(ICourierRepository courierRepository, IStorageSe
         return cnh != 0;
     }
 
-    private static bool TryDecodeImage(string base64, out byte[] bytes, out string contentType, out string extension, out string error)
+    private static bool TryDecodeImage(string base64, out byte[] bytes, out string contentType, out string extension)
     {
         bytes = [];
         contentType = string.Empty;
         extension = string.Empty;
-        error = string.Empty;
 
         if (string.IsNullOrWhiteSpace(base64))
-        {
-            error = "Imagem inválida.";
             return false;
-        }
 
         try
         {
@@ -124,15 +89,11 @@ public class CouriersController(ICourierRepository courierRepository, IStorageSe
         }
         catch
         {
-            error = "Base64 inválido.";
             return false;
         }
 
         if (bytes.Length < 4)
-        {
-            error = "Imagem muito pequena.";
             return false;
-        }
 
         // PNG header: 89 50 4E 47 - https://en.wikipedia.org/wiki/List_of_file_signatures
         if (bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47)
@@ -150,7 +111,6 @@ public class CouriersController(ICourierRepository courierRepository, IStorageSe
             return true;
         }
 
-        error = "Formato de imagem não suportado. Use PNG ou BMP.";
         return false;
     }
 }

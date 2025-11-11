@@ -24,14 +24,10 @@ public class RentalsController(ICourierRepository courierRepository, IMotorcycle
             return BadRequest(new { mensagem = "Dados inválidos" });
         }
 
-        var courier = await courierRepository.GetByIdentificadorAsync(req.EntregadorId);
-        if (courier is null || courier.TipoCnh != CnhType.A && courier.TipoCnh != CnhType.AB)
+        var courier = await courierRepository.GetByIdentifierAsync(req.EntregadorId);
+        if (courier is null || courier.CnhType != CnhType.A && courier.CnhType != CnhType.AB)
             return BadRequest(new { mensagem = "Dados inválidos" });
 
-        var motorcycle = await motorcycleRepository.GetByIdAsync(req.MotoId);
-        if (motorcycle is null)
-            return BadRequest(new { mensagem = "Dados inválidos" });
- 
         if (req.DataInicio > req.DataPrevisaoTermino)
             return BadRequest(new { mensagem = "Dados inválidos" });
 
