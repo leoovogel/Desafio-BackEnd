@@ -23,21 +23,19 @@ public class RentalsController(ICourierRepository courierRepository, IMotorcycle
         {
             return BadRequest(new { mensagem = "Dados inválidos" });
         }
+        
+        if (req.DataInicio > req.DataPrevisaoTermino)
+            return BadRequest(new { mensagem = "Dados inválidos" });
+
+        if (!RentalPlanCatalog.TryGet(req.Plano, out var plan, out var dailyRate))
+            return BadRequest(new { mensagem = "Dados inválidos" });
 
         var courier = await courierRepository.GetByIdentifierAsync(req.EntregadorId);
         if (courier is null || courier.CnhType != CnhType.A && courier.CnhType != CnhType.AB)
             return BadRequest(new { mensagem = "Dados inválidos" });
-
-        if (req.DataInicio > req.DataPrevisaoTermino)
-            return BadRequest(new { mensagem = "Dados inválidos" });
-
-        // var today = DateTime.Now;
-        // var requiredStart = today.AddDays(1);
-        //
-        // if (req.DataInicio != requiredStart)
-        //     return BadRequest(new { mensagem = "Dados inválidos" });
-
-        if (!RentalPlanCatalog.TryGet(req.Plano, out var plan, out var dailyRate))
+        
+        var motorcycle = await motorcycleRepository.GetByIdAsync(req.MotoId);
+        if (motorcycle is null)
             return BadRequest(new { mensagem = "Dados inválidos" });
 
         var rental = new Rental
@@ -53,18 +51,7 @@ public class RentalsController(ICourierRepository courierRepository, IMotorcycle
 
         var saved = await rentalRepository.AddAsync(rental);
 
-        var res = new CreateRentalResponse(
-            saved.Identifier,
-            saved.CourierId,
-            saved.MotorcycleId,
-            saved.StartDate,
-            saved.EndDate,
-            saved.ExpectedEndDate,
-            (int)saved.Plan,
-            saved.DailyRate
-        );
-
-        return Created($"/locacoes/{saved.Identifier}", res);
+        return Created($"/locacoes/{saved.Identifier}", null);
     }
     
     [HttpGet("{id}")]
@@ -103,6 +90,8 @@ public class RentalsController(ICourierRepository courierRepository, IMotorcycle
 
         if (req.DataDevolucao < rental.StartDate)
             return BadRequest(new { mensagem = "Dados inválidos" });
+        
+        rental.ReturnDate = req.DataDevolucao;
 
         var total = RentalPlanCatalog.CalculateTotal(rental, req.DataDevolucao);
 

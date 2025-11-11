@@ -100,6 +100,77 @@ namespace Vogel.Rentals.Infrastructure.Migrations
 
                     b.ToTable("motorcycles", (string)null);
                 });
+
+            modelBuilder.Entity("Vogel.Rentals.Domain.Entities.Rental", b =>
+                {
+                    b.Property<Guid>("Identifier")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("identifier");
+
+                    b.Property<string>("CourierId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("courier_id");
+
+                    b.Property<decimal>("DailyRate")
+                        .HasColumnType("decimal(10,2)")
+                        .HasColumnName("daily_rate");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("end_date");
+
+                    b.Property<DateTime>("ExpectedEndDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expected_end_date");
+
+                    b.Property<string>("MotorcycleId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("motorcycle_id");
+
+                    b.Property<int>("Plan")
+                        .HasColumnType("integer")
+                        .HasColumnName("plan");
+
+                    b.Property<DateTime?>("ReturnDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("return_date");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("start_date");
+
+                    b.HasKey("Identifier");
+
+                    b.HasIndex("CourierId");
+
+                    b.HasIndex("MotorcycleId");
+
+                    b.ToTable("rentals", (string)null);
+                });
+
+            modelBuilder.Entity("Vogel.Rentals.Domain.Entities.Rental", b =>
+                {
+                    b.HasOne("Vogel.Rentals.Domain.Entities.Courier", "Courier")
+                        .WithMany()
+                        .HasForeignKey("CourierId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Vogel.Rentals.Domain.Entities.Motorcycle", "Motorcycle")
+                        .WithMany()
+                        .HasForeignKey("MotorcycleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Courier");
+
+                    b.Navigation("Motorcycle");
+                });
 #pragma warning restore 612, 618
         }
     }

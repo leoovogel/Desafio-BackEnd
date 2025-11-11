@@ -7,6 +7,7 @@ public class RentalsDbContext(DbContextOptions<RentalsDbContext> options) : DbCo
 {
     public DbSet<Motorcycle> Motorcycles => Set<Motorcycle>();
     public DbSet<Courier> Couriers => Set<Courier>();
+    public DbSet<Rental> Rentals => Set<Rental>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -14,6 +15,7 @@ public class RentalsDbContext(DbContextOptions<RentalsDbContext> options) : DbCo
 
         ConfigureMotorcycle(modelBuilder);
         ConfigureCourier(modelBuilder);
+        ConfigureRental(modelBuilder);
     }
 
     private static void ConfigureMotorcycle(ModelBuilder modelBuilder)
@@ -91,5 +93,62 @@ public class RentalsDbContext(DbContextOptions<RentalsDbContext> options) : DbCo
 
         c.HasIndex(x => x.CnhNumber)
             .IsUnique();
+    }
+    
+    private static void ConfigureRental(ModelBuilder modelBuilder)
+    {
+        var r = modelBuilder.Entity<Rental>();
+    
+        r.ToTable("rentals");
+    
+        r.HasKey(x => x.Identifier);
+    
+        r.Property(x => x.Identifier)
+            .HasColumnName("identifier")
+            .IsRequired();
+    
+        r.Property(x => x.CourierId)
+            .HasColumnName("courier_id")
+            .HasMaxLength(50)
+            .IsRequired();
+    
+        r.Property(x => x.MotorcycleId)
+            .HasColumnName("motorcycle_id")
+            .HasMaxLength(50)
+            .IsRequired();
+    
+        r.Property(x => x.StartDate)
+            .HasColumnName("start_date")
+            .IsRequired();
+    
+        r.Property(x => x.EndDate)
+            .HasColumnName("end_date")
+            .IsRequired();
+    
+        r.Property(x => x.ExpectedEndDate)
+            .HasColumnName("expected_end_date")
+            .IsRequired();
+        
+        r.Property(x => x.ReturnDate)
+            .HasColumnName("return_date");
+    
+        r.Property(x => x.Plan)
+            .HasColumnName("plan")
+            .IsRequired();
+    
+        r.Property(x => x.DailyRate)
+            .HasColumnName("daily_rate")
+            .HasColumnType("decimal(10,2)")
+            .IsRequired();
+    
+        r.HasOne(x => x.Courier)
+            .WithMany()
+            .HasForeignKey(rental => rental.CourierId)
+            .HasPrincipalKey(courier => courier.Identifier);
+        
+        r.HasOne(x => x.Motorcycle)
+            .WithMany()
+            .HasForeignKey(rental => rental.MotorcycleId)
+            .HasPrincipalKey(motorcycle => motorcycle.Identifier);
     }
 }

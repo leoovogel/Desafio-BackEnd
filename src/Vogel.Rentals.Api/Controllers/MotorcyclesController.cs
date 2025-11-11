@@ -33,7 +33,7 @@ public class MotorcyclesController(IMotorcycleRepository motorcycleRepository) :
     [HttpGet]
     public async Task<IActionResult> SearchByPlate([FromQuery] string? placa)
     {
-        var motorcycles = await motorcycleRepository.SearchByPlateAsync(placa);
+        var motorcycles = await motorcycleRepository.GetByPlateAsync(placa);
         
         return Ok(motorcycles);
     }
@@ -44,7 +44,7 @@ public class MotorcyclesController(IMotorcycleRepository motorcycleRepository) :
         if (string.IsNullOrWhiteSpace(id))
             return BadRequest(new { mensagem = "Request mal formada" });
         
-        var motorcycles = await motorcycleRepository.SearchByIdAsync(id);
+        var motorcycles = await motorcycleRepository.GetByIdAsync(id);
         
         return Ok(motorcycles);
     }

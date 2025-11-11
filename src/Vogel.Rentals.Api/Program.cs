@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Vogel.Rentals.Api.Middlewares;
 using Vogel.Rentals.Application.Abstractions;
 using Vogel.Rentals.Infrastructure.Contexts;
-using Vogel.Rentals.Infrastructure.InMemory;
 using Vogel.Rentals.Infrastructure.Local;
 using Vogel.Rentals.Infrastructure.Repositories;
 
@@ -14,8 +13,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IMotorcycleRepository, MotorcycleRepository>();
 builder.Services.AddScoped<ICourierRepository, CourierRepository>();
-// TODO: Temp, change to DB
-builder.Services.AddSingleton<IRentalRepository, InMemoryRentalRepository>();
+builder.Services.AddScoped<IRentalRepository, RentalRepository>();
 // TODO: Temp, change to S3
 builder.Services.AddSingleton<IStorageService, LocalStorageService>();
 

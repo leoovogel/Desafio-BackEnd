@@ -15,4 +15,7 @@ public class Rental
 
     public required RentalPlan Plan { get; set; }
     public required decimal DailyRate { get; set; }
+    
+    public Courier? Courier { get; set; }
+    public Motorcycle? Motorcycle { get; set; }
 }

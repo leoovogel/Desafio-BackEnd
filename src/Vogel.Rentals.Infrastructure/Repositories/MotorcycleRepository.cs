@@ -40,16 +40,17 @@ public class MotorcycleRepository(RentalsDbContext db) : IMotorcycleRepository
         return motorcycle;
     }
 
-    public async Task<Motorcycle> SearchByIdAsync(string id)
+    public async Task<Motorcycle?> GetByIdAsync(string id)
     {
-        var moto = await db.Motorcycles
+        if (string.IsNullOrWhiteSpace(id))
+            return null;
+
+        return await db.Motorcycles
             .AsNoTracking()
             .FirstOrDefaultAsync(m => m.Identifier == id);
-
-        return moto ?? throw new NotFoundException("Moto não encontrada");
     }
 
-    public async Task<IEnumerable<Motorcycle>> SearchByPlateAsync(string? plate)
+    public async Task<IEnumerable<Motorcycle>> GetByPlateAsync(string? plate)
     {
         var query = db.Motorcycles.AsNoTracking();
 

@@ -9,10 +9,10 @@ using Vogel.Rentals.Infrastructure.Contexts;
 
 #nullable disable
 
-namespace Vogel.Rentals.Infrastructure.Persistence.Migrations
+namespace Vogel.Rentals.Infrastructure.Migrations
 {
     [DbContext(typeof(RentalsDbContext))]
-    [Migration("20251111081210_AddCouriersTable")]
+    [Migration("20251111091045_AddCouriersTable")]
     partial class AddCouriersTable
     {
         /// <inheritdoc />
