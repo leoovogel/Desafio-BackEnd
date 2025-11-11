@@ -7,27 +7,18 @@ namespace Vogel.Rentals.Api.Controllers;
 
 [ApiController]
 [Route("motos")]
-public class MotorcyclesController(IMotorcycleRepository motorcycleRepository) : ControllerBase
+public class MotorcyclesController(
+    IMotorcycleRepository motorcycleRepository,
+    IMotorcycleService motorcycleService,
+    IMotorcycleValidator motorcycleValidator) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateMotorcycleRequest req)
     {
-        if (string.IsNullOrWhiteSpace(req.Identificador) ||
-            string.IsNullOrWhiteSpace(req.Modelo) ||
-            string.IsNullOrWhiteSpace(req.Placa) ||
-            req.Ano <= 0)
-            return BadRequest(new { mensagem = "Dados inválidos" });
+        motorcycleValidator.ValidateCreate(req);
 
-        var motorcycle = new Motorcycle
-        {
-            Identifier = req.Identificador,
-            Year = req.Ano,
-            Model = req.Modelo,
-            Plate = req.Placa
-        };
-
-        var res = await motorcycleRepository.AddAsync(motorcycle);
-        return Created($"/motos/{motorcycle.Identifier}", res);
+        var motorcycle = await motorcycleService.CreateAsync(req);
+        return Created($"/motos/{motorcycle.Identifier}", motorcycle);
     }
     
     [HttpGet]
@@ -41,36 +32,25 @@ public class MotorcyclesController(IMotorcycleRepository motorcycleRepository) :
     [HttpGet("{id}")]
     public async Task<IActionResult> SearchById(string id)
     {
-        if (string.IsNullOrWhiteSpace(id))
-            return BadRequest(new { mensagem = "Request mal formada" });
+        motorcycleValidator.ValidateSearchById(id);
         
         var motorcycles = await motorcycleRepository.GetByIdAsync(id);
-        
         return Ok(motorcycles);
     }
 
     [HttpPut("{id}/placa")]
     public async Task<IActionResult> UpdatePlate([FromBody] UpdatePlateByPlateRequest req, string id)
     {
-        if (string.IsNullOrWhiteSpace(req.Placa) || string.IsNullOrWhiteSpace(id))
-            return BadRequest(new { mensagem = "Dados inválidos" });
+        motorcycleValidator.ValidateUpdatePlate(id, req);
         
         await motorcycleRepository.UpdatePlateAsync(id, req.Placa);
-
         return Ok(new { mensagem = "Placa atualizada com sucesso" });
     }
     
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteByPlate(string id)
     {
-        if (string.IsNullOrWhiteSpace(id))
-            return BadRequest(new { mensagem = "Dados inválidos" });
-
-        // // TODO: Verify if motorcycle has rentals before deleting
-        // if ("hasRentals" == "false")
-        //     return BadRequest(new { mensagem = "Dados inválidos" });
-
-        await motorcycleRepository.DeleteAsync(id);
+        await motorcycleService.DeleteAsync(id);
         return Ok();
     }
 }

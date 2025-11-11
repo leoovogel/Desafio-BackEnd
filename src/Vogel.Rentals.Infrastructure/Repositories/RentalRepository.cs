@@ -55,4 +55,13 @@ public class RentalRepository(RentalsDbContext db) : IRentalRepository
         await db.SaveChangesAsync();
         return rental;
     }
+
+    public async Task<bool> HasRentalsForMotorcycleAsync(string motorcycleId)
+    {
+        if (string.IsNullOrWhiteSpace(motorcycleId))
+            return false;
+
+        return await db.Rentals
+            .AnyAsync(r => r.MotorcycleId == motorcycleId);
+    }
 }

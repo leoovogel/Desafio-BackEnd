@@ -147,7 +147,7 @@ public class RentalsDbContext(DbContextOptions<RentalsDbContext> options) : DbCo
             .HasPrincipalKey(courier => courier.Identifier);
         
         r.HasOne(x => x.Motorcycle)
-            .WithMany()
+            .WithMany(motorrcycle => motorrcycle.Rentals)
             .HasForeignKey(rental => rental.MotorcycleId)
             .HasPrincipalKey(motorcycle => motorcycle.Identifier);
     }

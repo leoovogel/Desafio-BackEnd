@@ -42,9 +42,6 @@ public class MotorcycleRepository(RentalsDbContext db) : IMotorcycleRepository
 
     public async Task<Motorcycle?> GetByIdAsync(string id)
     {
-        if (string.IsNullOrWhiteSpace(id))
-            return null;
-
         return await db.Motorcycles
             .AsNoTracking()
             .FirstOrDefaultAsync(m => m.Identifier == id);
