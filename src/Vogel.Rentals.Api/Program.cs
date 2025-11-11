@@ -13,8 +13,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IMotorcycleRepository, MotorcycleRepository>();
+builder.Services.AddScoped<ICourierRepository, CourierRepository>();
 // TODO: Temp, change to DB
-builder.Services.AddSingleton<ICourierRepository, InMemoryCourierRepository>();
 builder.Services.AddSingleton<IRentalRepository, InMemoryRentalRepository>();
 // TODO: Temp, change to S3
 builder.Services.AddSingleton<IStorageService, LocalStorageService>();

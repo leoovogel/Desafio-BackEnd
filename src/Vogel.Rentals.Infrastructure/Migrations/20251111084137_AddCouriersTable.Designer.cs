@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Vogel.Rentals.Infrastructure.Contexts;
@@ -11,9 +12,11 @@ using Vogel.Rentals.Infrastructure.Contexts;
 namespace Vogel.Rentals.Infrastructure.Migrations
 {
     [DbContext(typeof(RentalsDbContext))]
-    partial class RentalsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251111084137_AddCouriersTable")]
+    partial class AddCouriersTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
