@@ -34,6 +34,9 @@ public class MotorcyclesController(
         motorcycleValidator.ValidateSearchById(id);
         
         var motorcycles = await motorcycleRepository.GetByIdAsync(id);
+        if (motorcycles is null)
+            return NotFound(new { mensagem = "Moto nao encontrada" });
+        
         return Ok(motorcycles);
     }
 

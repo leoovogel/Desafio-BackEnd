@@ -16,7 +16,7 @@ public class RentalsController(
         rentalValidator.ValidateCreate(req);
 
         var rental = await rentalService.CreateAsync(req);
-        return Created($"/locacoes/{rental.Identifier}", null);
+        return Created($"/locacoes/{rental.Identifier}", rental);
     }
     
     [HttpGet("{id}")]
